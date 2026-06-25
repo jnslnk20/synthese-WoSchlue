@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>synthese · WoSchlü</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Cascadia+Code:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #111111;
+    --surface:   #1a1a1a;
+    --surface2:  #222222;
+    --border:    #2e2e2e;
+    --border2:   #3a3a3a;
+    --text:      #E8E6E1;
+    --muted:     #8a8a8a;
+    --muted2:    #5e5e5e;
+
+    --l:         #C87941;
+    --l-dim:     rgba(200,121,65,0.12);
+    --l-border:  rgba(200,121,65,0.28);
+
+    --b:         #5B80C8;
+    --b-dim:     rgba(91,128,200,0.12);
+    --b-border:  rgba(91,128,200,0.3);
+
+    --ok:        #4a9e6b;
+    --err:       #b85c4a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cascadia Code', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    height: 58px;
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 0;
+  }
+
+  .wordmark {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.5px;
+    margin-right: 6px;
+    line-height: 1;
+  }
+  .wordmark-sub {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+    color: var(--muted);
+    letter-spacing: -0.3px;
+    margin-right: 36px;
+    line-height: 1;
+    padding-top: 1px;
+  }
+
+  .nav-tabs { display: flex; gap: 2px; }
+  .nav-tab {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    transition: color 0.15s, background 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--text); background: var(--surface2); }
+
+  /* ── LAYOUT ── */
+  main { max-width: 1000px; margin: 0 auto; padding: 36px 28px 64px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-heading {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.8px;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.1;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── LAGER GRID ── */
+  .lager-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 620px) { .lager-grid { grid-template-columns: 1fr; } }
+
+  .lager-card {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .lager-header {
+    padding: 13px 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .lager-pip { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  .lager-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.2px;
+    flex: 1;
+  }
+  .lager-stat {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .key-list { padding: 4px 0; }
+  .key-row {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-bottom: 1px solid transparent;
+  }
+  .key-row:last-child { border-bottom: none; }
+  .key-row:hover { background: var(--surface2); }
+
+  .key-tag {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .key-info { flex: 1; }
+  .key-holder { font-size: 13px; font-weight: 600; color: var(--text); }
+  .key-since { font-size: 11px; color: var(--muted); margin-top: 1px; letter-spacing: 0.1px; }
+  .key-arrow {
+    font-size: 11px;
+    color: var(--muted2);
+    flex-shrink: 0;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .card-inner { padding: 22px; }
+  .card-label {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+  }
+
+  /* ── FORM CONTROLS ── */
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+  }
+  select, input[type="text"] {
+    width: 100%;
+    font-family: 'Cascadia Code', monospace;
+    font-size: 13px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    outline: none;
+    appearance: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, input[type="text"]:focus { border-color: var(--text); }
+  select option { background: #1a1a1a; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.14s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--text); color: var(--bg); }
+  .btn-primary:hover { background: #fff; }
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-full { width: 100%; justify-content: center; margin-top: 18px; }
+
+  /* ── MEMBER LIST (transfer) ── */
+  .member-list { display: flex; flex-direction: column; gap: 4px; max-height: 400px; overflow-y: auto; }
+  .member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.1s;
+  }
+  .member-item:hover { background: var(--surface2); border-color: var(--border); }
+  .member-item.selected { border-color: var(--text); background: var(--surface2); }
+  .member-rank {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 10px;
+    color: var(--muted2);
+    width: 18px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .member-name { flex: 1; font-size: 13px; }
+  .member-usage {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── TRANSFER GRID ── */
+  .transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 620px) { .transfer-grid { grid-template-columns: 1fr; } }
+
+  /* ── HISTORY TABLE ── */
+  .table-wrap { overflow: hidden; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    font-family: 'Cascadia Code', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 11px 18px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  tbody td {
+    padding: 11px 18px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(46,46,46,0.6);
+    background: var(--surface);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+
+  .action-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .action-chip.transfer {
+    background: rgba(232,230,225,0.08);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+
+  .lager-chip {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── HOW-TO HINT ── */
+  .nfc-hint {
+    margin-top: 22px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    background: var(--surface);
+  }
+  .nfc-hint-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 10px;
+    letter-spacing: -0.2px;
+    color: var(--text);
+  }
+  .nfc-hint-body { display: flex; flex-direction: column; gap: 6px; }
+  .nfc-hint-step { display: flex; gap: 10px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .nfc-hint-num { font-family: 'Cascadia Code', monospace; font-size: 10px; font-weight: 600; color: var(--muted2); flex-shrink: 0; padding-top: 2px; width: 16px; }
+
+  /* ── EMPTY ── */
+  .empty-state { padding: 52px; text-align: center; color: var(--muted); font-size: 13px; background: var(--surface); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--text);
+    color: var(--bg);
+    font-family: 'Cascadia Code', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 7px;
+    transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 999;
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.err { background: #b85c4a; color: #fff; }
+
+  /* ── ARROW FLOW (Übergabe visual) ── */
+  .flow-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    margin-top: 18px;
+    min-height: 46px;
+  }
+  .flow-person {
+    font-size: 13px;
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+  }
+  .flow-arrow { color: var(--muted2); font-size: 16px; flex-shrink: 0; }
+  .flow-placeholder { color: var(--muted2); font-size: 12px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wordmark">synthese</div>
+  <div class="wordmark-sub">WoSchlü</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">Übersicht</button>
+    <button class="nav-tab" onclick="showPage('transfer')">Übergabe</button>
+    <button class="nav-tab" onclick="showPage('history')">Historie</button>
+    <button class="nav-tab" onclick="showPage('members')">Mitglieder</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ── HOME ── -->
+  <div class="page active" id="page-home">
+    <div class="page-heading">Schlüsselübersicht</div>
+    <div class="page-sub" id="home-ts">—</div>
+    <div class="lager-grid" id="lager-grid"></div>
+  </div>
+
+  <!-- ── TRANSFER ── -->
+  <div class="page" id="page-transfer">
+    <div class="page-heading">Schlüsselübergabe</div>
+    <div class="page-sub">Schlüssel von Person A zu Person B übertragen</div>
+    <div class="transfer-grid">
+      <div>
+        <div class="card">
+          <div class="card-inner">
+            <div class="card-label">Schlüssel</div>
+            <div class="field">
+              <label>Lager</label>
+              <select id="t-lager" onchange="onLagerChange()">
+                <option value="">— Lager wählen —</option>
+                <option value="L">L-Lager</option>
+                <option value="B">B-Lager</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Schlüssel</label>
+              <select id="t-key" onchange="onKeyChange()">
+                <option value="">— zuerst Lager wählen —</option>
+              </select>
+            </div>
+
+            <div class="flow-display" id="flow-display">
+              <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>
+            </div>
+
+            <button class="btn btn-primary btn-full" onclick="doTransfer()" id="transfer-btn">Übergabe eintragen</button>
+          </div>
+        </div>
+
+        <div class="nfc-hint">
+          <div>
+            <div class="nfc-hint-title">So funktioniert die Übergabe</div>
+            <div class="nfc-hint-body">
+              <div class="nfc-hint-step"><span class="nfc-hint-num">1.</span><span>Lager und Schlüssel wählen — der aktuelle Besitzer erscheint links im Pfeil.</span></div>
+              <div class="nfc-hint-step"><span class="nfc-hint-num">2.</span><span>Neuen Besitzer rechts in der Liste antippen — er erscheint dann rechts im Pfeil.</span></div>
+              <div class="nfc-hint-step"><span class="nfc-hint-num">3.</span><span>„Übergabe eintragen" drücken. Der Eintrag wird sofort in der Historie gespeichert.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-label">Neuer Besitzer</div>
+          <div class="member-list" id="transfer-members"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY ── -->
+  <div class="page" id="page-history">
+    <div class="page-heading">Historie</div>
+    <div class="page-sub" id="history-sub">—</div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <select id="f-lager" onchange="renderHistory()" style="width:auto;font-size:12px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cascadia Code',monospace;appearance:none;outline:none;">
+        <option value="">Alle Lager</option>
+        <option value="L">L-Lager</option>
+        <option value="B">B-Lager</option>
+      </select>
+      <select id="f-key" onchange="renderHistory()" style="width:auto;font-size:12px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cascadia Code',monospace;appearance:none;outline:none;"></select>
+      <select id="f-person" onchange="renderHistory()" style="width:auto;font-size:12px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cascadia Code',monospace;appearance:none;outline:none;"></select>
+      <button id="sort-btn" onclick="toggleSort()" style="font-family:'Cascadia Code',monospace;font-size:11px;font-weight:600;padding:7px 12px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;white-space:nowrap;">
+        <span id="sort-label">↓ Neueste zuerst</span>
+      </button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Uhrzeit</th>
+            <th>Schlüssel-ID</th>
+            <th>Lager</th>
+            <th>Von</th>
+            <th>Nach</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+      <div style="display:none; padding:48px; text-align:center; color:var(--muted); font-size:13px; background:var(--surface);" id="history-empty">Keine Einträge für diesen Filter.</div>
+    </div>
+  </div>
+
+  <!-- ── MEMBERS ── -->
+  <div class="page" id="page-members">
+    <div class="page-heading">Mitglieder</div>
+    <div class="page-sub">Sortiert nach Häufigkeit der Schlüsselübernahmen</div>
+
+    <div class="table-wrap" style="margin-bottom:22px;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Übernahmen</th>
+            <th>Hält gerade</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="members-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-label">Mitglied hinzufügen</div>
+        <div style="display:flex;gap:10px;">
+          <input type="text" id="new-member" placeholder="Name…" onkeydown="if(event.key==='Enter')addMember()" style="flex:1;">
+          <button class="btn btn-primary" onclick="addMember()">Hinzufügen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+
+const LAGER_CFG = {
+  L: { name: 'L-Lager', color: '#C87941', dim: 'rgba(200,121,65,0.12)', border: 'rgba(200,121,65,0.28)', keys: 5 },
+  B: { name: 'B-Lager', color: '#5B80C8', dim: 'rgba(91,128,200,0.12)',  border: 'rgba(91,128,200,0.3)',  keys: 5 },
+};
+
+// Key ID: L-Lager → l1..l5, B-Lager → b1..b5
+function keyId(lager, num) { return lager.toUpperCase() + num; }
+
+const DEFAULT_MEMBERS = [
+  'Anna Müller','Ben Schmidt','Clara Weber','David Koch','Eva Braun',
+  'Felix Bauer','Gabi Hoffmann','Hans Richter','Ina Wolf','Jan Schäfer'
+];
+
+// ── STORAGE ────────────────────────────────────────────────────────────────
+
+function load() {
+  return {
+    members: JSON.parse(localStorage.getItem('ws_members') || JSON.stringify(DEFAULT_MEMBERS)),
+    usage:   JSON.parse(localStorage.getItem('ws_usage')   || '{}'),
+    keys:    JSON.parse(localStorage.getItem('ws_keys')    || '{}'),
+    history: JSON.parse(localStorage.getItem('ws_history') || '[]'),
+  };
+}
+function save(d) {
+  localStorage.setItem('ws_members',  JSON.stringify(d.members));
+  localStorage.setItem('ws_usage',    JSON.stringify(d.usage));
+  localStorage.setItem('ws_keys',     JSON.stringify(d.keys));
+  localStorage.setItem('ws_history',  JSON.stringify(d.history));
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+
+const PAGE_IDX = { home:0, transfer:1, history:2, members:3 };
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab')[PAGE_IDX[id]].classList.add('active');
+  renders[id]();
+}
+
+const renders = {
+  home:     renderHome,
+  transfer: renderTransfer,
+  history:  renderHistory,
+  members:  renderMembers,
+};
+
+// ── HOME ───────────────────────────────────────────────────────────────────
+
+function renderHome() {
+  const d = load();
+  const now = new Date().toISOString();
+  document.getElementById('home-ts').textContent = 'Stand ' + fmtDate(now) + ', ' + fmtTime(now);
+  const grid = document.getElementById('lager-grid');
+  grid.innerHTML = '';
+
+  for (const [lid, cfg] of Object.entries(LAGER_CFG)) {
+    const card = document.createElement('div');
+    card.className = 'lager-card';
+    card.innerHTML = `
+      <div class="lager-header" style="border-color:${cfg.border}; background:${cfg.dim};">
+        <div class="lager-pip" style="background:${cfg.color};"></div>
+        <div class="lager-title" style="color:${cfg.color};">${cfg.name}</div>
+        <div class="lager-stat">${cfg.keys} Schlüssel</div>
+      </div>
+      <div class="key-list" id="kl-${lid}"></div>
+    `;
+    grid.appendChild(card);
+
+    const list = card.querySelector(`#kl-${lid}`);
+    for (let i = 1; i <= cfg.keys; i++) {
+      const kid = keyId(lid, i);
+      const entry = d.keys[kid];
+      const row = document.createElement('div');
+      row.className = 'key-row';
+      row.onclick = () => { showPage('transfer'); setTimeout(() => preselectKey(lid, i), 30); };
+      row.innerHTML = `
+        <span class="key-tag" style="background:${cfg.dim}; color:${cfg.color}; border:1px solid ${cfg.border};">${kid}</span>
+        <div class="key-info">
+          <div class="key-holder">${entry?.holder || '—'}</div>
+          <div class="key-since">${entry?.since ? 'seit ' + fmtDate(entry.since) + ' ' + fmtTime(entry.since) : 'kein Eintrag'}</div>
+        </div>
+        <div class="key-arrow">→</div>
+      `;
+      list.appendChild(row);
+    }
+  }
+}
+
+// ── TRANSFER ───────────────────────────────────────────────────────────────
+
+let selectedNewOwner = null;
+
+function renderTransfer() {
+  selectedNewOwner = null;
+  renderMemberPicker();
+  updateKeySelect();
+  updateFlowDisplay();
+}
+
+function renderMemberPicker() {
+  const d = load();
+  const sorted = [...d.members].sort((a,b) => (d.usage[b]||0) - (d.usage[a]||0));
+  const list = document.getElementById('transfer-members');
+  list.innerHTML = '';
+  sorted.forEach((m, i) => {
+    const div = document.createElement('div');
+    div.className = 'member-item' + (m === selectedNewOwner ? ' selected' : '');
+    div.innerHTML = `
+      <span class="member-rank">${i+1}</span>
+      <span class="member-name">${m}</span>
+      <span class="member-usage">${d.usage[m] || 0}×</span>
+    `;
+    div.onclick = () => { selectedNewOwner = m; renderMemberPicker(); updateFlowDisplay(); };
+    list.appendChild(div);
+  });
+}
+
+function onLagerChange() { updateKeySelect(); updateFlowDisplay(); }
+function onKeyChange()   { updateFlowDisplay(); }
+
+function updateKeySelect() {
+  const lager = document.getElementById('t-lager').value;
+  const sel   = document.getElementById('t-key');
+  sel.innerHTML = '';
+  if (!lager) { sel.innerHTML = '<option value="">— zuerst Lager wählen —</option>'; return; }
+  const cfg = LAGER_CFG[lager];
+  for (let i = 1; i <= cfg.keys; i++) {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = keyId(lager, i);
+    sel.appendChild(o);
+  }
+}
+
+function updateFlowDisplay() {
+  const lager  = document.getElementById('t-lager').value;
+  const keyNum = document.getElementById('t-key').value;
+  const el     = document.getElementById('flow-display');
+
+  if (!lager || !keyNum) {
+    el.innerHTML = '<span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>';
+    return;
+  }
+  const d    = load();
+  const kid  = keyId(lager, keyNum);
+  const current = d.keys[kid]?.holder || '(kein Eintrag)';
+  const next    = selectedNewOwner || '?';
+
+  const cfg = LAGER_CFG[lager];
+  el.innerHTML = `
+    <span class="flow-person" style="color:var(--muted); font-size:12px;">${current}</span>
+    <span class="flow-arrow">→</span>
+    <span class="flow-person" style="color:${selectedNewOwner ? 'var(--text)' : 'var(--muted2)'};">${next}</span>
+  `;
+}
+
+function doTransfer() {
+  const lager  = document.getElementById('t-lager').value;
+  const keyNum = document.getElementById('t-key').value;
+  if (!lager || !keyNum)      { toast('Lager und Schlüssel wählen', true); return; }
+  if (!selectedNewOwner)       { toast('Neuen Besitzer wählen', true); return; }
+
+  const d   = load();
+  const kid = keyId(lager, keyNum);
+  const prev = d.keys[kid]?.holder || null;
+  const cfg  = LAGER_CFG[lager];
+
+  if (prev === selectedNewOwner) { toast('Person hat diesen Schlüssel bereits', true); return; }
+
+  d.keys[kid] = { lager, holder: selectedNewOwner, since: new Date().toISOString() };
+  d.usage[selectedNewOwner] = (d.usage[selectedNewOwner] || 0) + 1;
+
+  d.history.unshift({
+    ts:      new Date().toISOString(),
+    lager:   cfg.name,
+    lagerId: lager,
+    key:     kid,
+    from:    prev,
+    to:      selectedNewOwner,
+  });
+
+  save(d);
+  toast(`${kid}: ${prev || '—'} → ${selectedNewOwner}`);
+  renderTransfer();
+}
+
+function preselectKey(lid, num) {
+  document.getElementById('t-lager').value = lid;
+  updateKeySelect();
+  document.getElementById('t-key').value = num;
+  updateFlowDisplay();
+}
+
+// ── HISTORY ────────────────────────────────────────────────────────────────
+
+let histSortAsc = false;
+
+function toggleSort() {
+  histSortAsc = !histSortAsc;
+  document.getElementById('sort-label').textContent = histSortAsc ? '↑ Älteste zuerst' : '↓ Neueste zuerst';
+  renderHistory();
+}
+
+function renderHistory() {
+  const d = load();
+
+  // populate person filter
+  const fPerson = document.getElementById('f-person');
+  const prevPerson = fPerson.value;
+  fPerson.innerHTML = '<option value="">Alle Personen</option>';
+  const allPersons = new Set();
+  d.history.forEach(h => { if(h.from) allPersons.add(h.from); if(h.to) allPersons.add(h.to); });
+  [...allPersons].sort().forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === prevPerson) o.selected = true;
+    fPerson.appendChild(o);
+  });
+
+  // key filter based on selected lager
+  const fLager = document.getElementById('f-lager').value;
+  const fKey   = document.getElementById('f-key');
+  const prevKey = fKey.value;
+  fKey.innerHTML = '<option value="">Alle Schlüssel</option>';
+  const lagersToShow = fLager ? [fLager] : Object.keys(LAGER_CFG);
+  lagersToShow.forEach(lid => {
+    const cfg = LAGER_CFG[lid];
+    for (let i = 1; i <= cfg.keys; i++) {
+      const kid = keyId(lid, i);
+      const o = document.createElement('option');
+      o.value = kid; o.textContent = kid;
+      if (kid === prevKey) o.selected = true;
+      fKey.appendChild(o);
+    }
+  });
+
+  const fKeyVal    = fKey.value;
+  const fPersonVal = document.getElementById('f-person').value;
+
+  let entries = [...d.history];
+  if (fLager)     entries = entries.filter(h => h.lagerId === fLager);
+  if (fKeyVal)    entries = entries.filter(h => h.key === fKeyVal);
+  if (fPersonVal) entries = entries.filter(h => h.from === fPersonVal || h.to === fPersonVal);
+  if (histSortAsc) entries = [...entries].reverse();
+
+  const body  = document.getElementById('history-body');
+  const empty = document.getElementById('history-empty');
+  body.innerHTML = '';
+  document.getElementById('history-sub').textContent =
+    entries.length + ' Einträge' + (fLager || fKeyVal || fPersonVal ? ' (gefiltert)' : ' gesamt');
+
+  if (!entries.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  entries.forEach((h, idx) => {
+    const cfg = LAGER_CFG[h.lagerId] || {};
+    // find the original index in d.history for deletion
+    const origIdx = d.history.indexOf(h);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:'Cascadia Code',monospace;">${fmtDate(h.ts)}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:'Cascadia Code',monospace;">${fmtTime(h.ts)}</td>
+      <td style="font-family:'Cascadia Code',monospace;font-weight:600;color:${cfg.color||'var(--text)'};">${h.key}</td>
+      <td><span class="lager-chip" style="background:${cfg.dim||'#222'};color:${cfg.color||'#aaa'};">${h.lager}</span></td>
+      <td style="color:var(--muted);">${h.from || '—'}</td>
+      <td style="font-weight:600;">${h.to}</td>
+      <td><button onclick="deleteHistoryEntry(${origIdx})" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+// ── MEMBERS ────────────────────────────────────────────────────────────────
+
+function renderMembers() {
+  const d      = load();
+  const sorted = [...d.members].sort((a,b) => (d.usage[b]||0) - (d.usage[a]||0));
+  const body   = document.getElementById('members-body');
+  body.innerHTML = '';
+
+  sorted.forEach((m, i) => {
+    const heldLabels = Object.entries(d.keys)
+      .filter(([,v]) => v?.holder === m)
+      .map(([kid]) => {
+        const lid = kid.charAt(0).toUpperCase();
+        const cfg = LAGER_CFG[lid] || {};
+        return `<span style="font-family:'Cascadia Code',monospace;font-size:11px;background:${cfg.dim||'var(--surface2)'};color:${cfg.color||'var(--text)'};padding:2px 6px;border-radius:3px;">${kid}</span>`;
+      }).join(' ');
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted2);font-size:11px;">#${i+1}</td>
+      <td style="font-weight:600;">${m}</td>
+      <td style="font-family:'Cascadia Code',monospace; color:var(--text);">${d.usage[m] || 0}</td>
+      <td>${heldLabels || '<span style="color:var(--muted2)">—</span>'}</td>
+      <td><button onclick="deleteMember('${m.replace(/'/g, "\\'")}')" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+function deleteHistoryEntry(idx) {
+  const d = load();
+  d.history.splice(idx, 1);
+  save(d);
+  renderHistory();
+}
+
+function deleteMember(name) {
+  const d = load();
+  const held = Object.values(d.keys).filter(k => k?.holder === name);
+  if (held.length) { toast(`${name} hält noch ${held.length} Schlüssel`, true); return; }
+  d.members = d.members.filter(m => m !== name);
+  delete d.usage[name];
+  save(d);
+  toast(`${name} entfernt`);
+  renderMembers();
+}
+
+function addMember() {
+  const inp  = document.getElementById('new-member');
+  const name = inp.value.trim();
+  if (!name) return;
+  const d = load();
+  if (d.members.includes(name)) { toast('Mitglied bereits vorhanden', true); return; }
+  d.members.push(name);
+  save(d);
+  inp.value = '';
+  toast(`${name} hinzugefügt`);
+  renderMembers();
+}
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+function fmtTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(msg, isErr = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isErr ? ' err' : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── NFC URL PARAMS ─────────────────────────────────────────────────────────
+
+(function() {
+  const p = new URLSearchParams(location.search);
+  const lager = (p.get('lager') || '').toUpperCase();
+  const key   = p.get('schluessel');
+  if (lager && key && LAGER_CFG[lager]) {
+    showPage('transfer');
+    setTimeout(() => preselectKey(lager, key), 60);
+  } else {
+    renderHome();
+  }
+})();
+</script>
+</body>
+</html>
