@@ -45,11 +45,20 @@
     position: sticky; top: 0; z-index: 100;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
-    height: 58px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    padding: 0 28px;
+    padding: 0 20px;
     gap: 0;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    height: 52px;
+    align-items: center;
+    flex-shrink: 0;
   }
 
   .wordmark {
@@ -58,7 +67,7 @@
     font-size: 17px;
     color: var(--text);
     letter-spacing: -0.5px;
-    margin-right: 6px;
+    margin-right: 5px;
     line-height: 1;
   }
   .wordmark-sub {
@@ -67,12 +76,31 @@
     font-size: 15px;
     color: var(--muted);
     letter-spacing: -0.3px;
-    margin-right: 36px;
+    margin-right: 0;
     line-height: 1;
     padding-top: 1px;
   }
 
-  .nav-tabs { display: flex; gap: 2px; }
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+  @media (max-width: 520px) {
+    nav { padding: 0 14px; }
+    .nav-brand { height: 48px; }
+    .nav-tabs {
+      flex: none;
+      width: 100%;
+      justify-content: flex-start;
+      padding-bottom: 8px;
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
+      overflow-x: auto;
+    }
+    .wordmark-sub { margin-right: 0; }
+  }
   .nav-tab {
     font-family: 'Cascadia Code', monospace;
     font-size: 12px;
@@ -268,6 +296,10 @@
   /* ── TRANSFER GRID ── */
   .transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 620px) { .transfer-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) {
+    .transfer-3col { grid-template-columns: 1fr !important; }
+    main { padding: 20px 14px 48px; }
+  }
 
   /* ── HISTORY TABLE ── */
   .table-wrap { overflow: hidden; border-radius: 10px; border: 1px solid var(--border); }
@@ -395,8 +427,10 @@
 <body>
 
 <nav>
-  <div class="wordmark">synthese</div>
-  <div class="wordmark-sub">WoSchlü</div>
+  <div class="nav-brand">
+    <div class="wordmark">synthese</div>
+    <div class="wordmark-sub">WoSchlü</div>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('home')">Übersicht</button>
     <button class="nav-tab" onclick="showPage('transfer')">Übergabe</button>
@@ -418,50 +452,53 @@
   <div class="page" id="page-transfer">
     <div class="page-heading">Schlüsselübergabe</div>
     <div class="page-sub">Schlüssel von Person A zu Person B übertragen</div>
-    <div class="transfer-grid">
-      <div>
-        <div class="card">
-          <div class="card-inner">
-            <div class="card-label">Schlüssel</div>
-            <div class="field">
-              <label>Lager</label>
-              <select id="t-lager" onchange="onLagerChange()">
-                <option value="">— Lager wählen —</option>
-                <option value="L">L-Lager</option>
-                <option value="B">B-Lager</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Schlüssel</label>
-              <select id="t-key" onchange="onKeyChange()">
-                <option value="">— zuerst Lager wählen —</option>
-              </select>
-            </div>
 
-            <div class="flow-display" id="flow-display">
-              <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>
-            </div>
-
-            <button class="btn btn-primary btn-full" onclick="doTransfer()" id="transfer-btn">Übergabe eintragen</button>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-inner">
+        <div class="card-label">Schlüssel & Besitzer</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;" class="transfer-3col">
+          <div class="field" style="margin:0;">
+            <label>Lager</label>
+            <select id="t-lager" onchange="onLagerChange()">
+              <option value="">— Lager —</option>
+              <option value="L">L-Lager</option>
+              <option value="B">B-Lager</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Schlüssel</label>
+            <select id="t-key" onchange="onKeyChange()">
+              <option value="">— Schlüssel —</option>
+            </select>
+          </div>
+          <div class="field" style="margin:0;">
+            <label>Neuer Besitzer</label>
+            <select id="t-member-select" onchange="onMemberSelectChange()">
+              <option value="">— Person —</option>
+            </select>
           </div>
         </div>
-
-        <div class="nfc-hint">
-          <div>
-            <div class="nfc-hint-title">So funktioniert die Übergabe</div>
-            <div class="nfc-hint-body">
-              <div class="nfc-hint-step"><span class="nfc-hint-num">1.</span><span>Lager und Schlüssel wählen — der aktuelle Besitzer erscheint links im Pfeil.</span></div>
-              <div class="nfc-hint-step"><span class="nfc-hint-num">2.</span><span>Neuen Besitzer rechts in der Liste antippen — er erscheint dann rechts im Pfeil.</span></div>
-              <div class="nfc-hint-step"><span class="nfc-hint-num">3.</span><span>„Übergabe eintragen" drücken. Der Eintrag wird sofort in der Historie gespeichert.</span></div>
-            </div>
-          </div>
+        <div class="flow-display" id="flow-display" style="margin-top:16px;">
+          <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel und Person wählen →</span>
         </div>
+        <button class="btn btn-primary btn-full" onclick="doTransfer()">Übergabe eintragen</button>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-label">Neuer Besitzer</div>
-          <div class="member-list" id="transfer-members"></div>
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-inner">
+        <div class="card-label">Oder Person in Rangliste wählen</div>
+        <div class="member-list" id="transfer-members"></div>
+      </div>
+    </div>
+
+    <div class="nfc-hint">
+      <div>
+        <div class="nfc-hint-title">So funktioniert die Übergabe</div>
+        <div class="nfc-hint-body">
+          <div class="nfc-hint-step"><span class="nfc-hint-num">1.</span><span>Lager und Schlüssel wählen — der aktuelle Besitzer erscheint links im Pfeil.</span></div>
+          <div class="nfc-hint-step"><span class="nfc-hint-num">2.</span><span>Neuen Besitzer per Dropdown oder Rangliste wählen — er erscheint rechts im Pfeil.</span></div>
+          <div class="nfc-hint-step"><span class="nfc-hint-num">3.</span><span>„Übergabe eintragen" drücken. Der Eintrag wird sofort in der Historie gespeichert.</span></div>
         </div>
       </div>
     </div>
@@ -489,10 +526,8 @@
       <table>
         <thead>
           <tr>
-            <th>Datum</th>
-            <th>Uhrzeit</th>
-            <th>Schlüssel-ID</th>
-            <th>Lager</th>
+            <th>Zeitpunkt</th>
+            <th>Schlüssel</th>
             <th>Von</th>
             <th>Nach</th>
             <th></th>
@@ -538,97 +573,132 @@
 </main>
 
 <div class="toast" id="toast"></div>
+<div id="loader" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;">
+  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--text);">synthese <span style="font-weight:400;color:var(--muted);">WoSchlü</span></div>
+  <div style="font-family:'Cascadia Code',monospace;font-size:12px;color:var(--muted);">Verbinde mit Datenbank…</div>
+</div>
 
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, get, update, remove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCX6nW_YO3UWxKtltcO39Jd_3Fh4VKR9ZI",
+  authDomain: "woschlue-10cb3.firebaseapp.com",
+  databaseURL: "https://woschlue-10cb3-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "woschlue-10cb3",
+  storageBucket: "woschlue-10cb3.firebasestorage.app",
+  messagingSenderId: "276100161600",
+  appId: "1:276100161600:web:14bf81603f3837972e7fa5",
+};
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 
 const LAGER_CFG = {
   L: { name: 'L-Lager', color: '#C87941', dim: 'rgba(200,121,65,0.12)', border: 'rgba(200,121,65,0.28)', keys: 5 },
-  B: { name: 'B-Lager', color: '#5B80C8', dim: 'rgba(91,128,200,0.12)',  border: 'rgba(91,128,200,0.3)',  keys: 5 },
+  B: { name: 'B-Lager', color: '#5B80C8', dim: 'rgba(91,128,200,0.12)', border: 'rgba(91,128,200,0.3)',  keys: 5 },
 };
 
-// Key ID: L-Lager → l1..l5, B-Lager → b1..b5
 function keyId(lager, num) { return lager.toUpperCase() + num; }
 
-const DEFAULT_MEMBERS = [
-  'Anna Müller','Ben Schmidt','Clara Weber','David Koch','Eva Braun',
-  'Felix Bauer','Gabi Hoffmann','Hans Richter','Ina Wolf','Jan Schäfer'
-];
+const DEFAULT_MEMBERS = ['Jannis','Karam','Paul','Luise','Florian','Eric','Tobi','Emmi','Leonie'];
 
-// ── STORAGE ────────────────────────────────────────────────────────────────
+// ── IN-MEMORY STATE ────────────────────────────────────────────────────────
 
-function load() {
-  return {
-    members: JSON.parse(localStorage.getItem('ws_members') || JSON.stringify(DEFAULT_MEMBERS)),
-    usage:   JSON.parse(localStorage.getItem('ws_usage')   || '{}'),
-    keys:    JSON.parse(localStorage.getItem('ws_keys')    || '{}'),
-    history: JSON.parse(localStorage.getItem('ws_history') || '[]'),
-  };
+let STATE = { members: [], usage: {}, keys: {}, history: [] };
+let initialized = false;
+let currentPage = 'home';
+
+// ── FIREBASE ───────────────────────────────────────────────────────────────
+
+function memberKey(name) { return name.replace(/\./g, ','); }
+
+async function fbInit() {
+  const snap = await get(ref(db, 'members'));
+  if (!snap.exists()) {
+    const obj = {};
+    DEFAULT_MEMBERS.forEach(m => { obj[memberKey(m)] = true; });
+    await set(ref(db, 'members'), obj);
+  }
 }
-function save(d) {
-  localStorage.setItem('ws_members',  JSON.stringify(d.members));
-  localStorage.setItem('ws_usage',    JSON.stringify(d.usage));
-  localStorage.setItem('ws_keys',     JSON.stringify(d.keys));
-  localStorage.setItem('ws_history',  JSON.stringify(d.history));
+
+function fbListen() {
+  onValue(ref(db, '/'), snap => {
+    const raw = snap.val() || {};
+    STATE.members = Object.keys(raw.members || {}).map(k => k.replace(/,/g,'.'));
+    STATE.usage   = raw.usage || {};
+    STATE.keys    = raw.keys  || {};
+    const hist    = raw.history || {};
+    STATE.history = Object.entries(hist)
+      .map(([k,v]) => ({ _fbKey: k, ...v }))
+      .sort((a,b) => b.ts.localeCompare(a.ts));
+    if (!initialized) {
+      initialized = true;
+      const l = document.getElementById('loader');
+      if (l) l.style.display = 'none';
+      init();
+    } else rerenderCurrent();
+  });
+}
+
+async function fbTransfer(kid, lager, newOwner, oldOwner) {
+  const ts  = new Date().toISOString();
+  const cfg = LAGER_CFG[lager];
+  const fbKey = ts.replace(/[.:]/g,'-') + '_' + Math.random().toString(36).slice(2,6);
+  const updates = {};
+  updates[`keys/${kid}`] = { lager, holder: newOwner, since: ts };
+  updates[`usage/${memberKey(newOwner)}`] = (STATE.usage[newOwner] || 0) + 1;
+  updates[`history/${fbKey}`] = { ts, lager: cfg.name, lagerId: lager, key: kid, from: oldOwner||null, to: newOwner };
+  await update(ref(db), updates);
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
 
-const PAGE_IDX = { home:0, transfer:1, history:2, members:3 };
-
 function showPage(id) {
+  currentPage = id;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  document.querySelectorAll('.nav-tab')[PAGE_IDX[id]].classList.add('active');
-  renders[id]();
+  document.querySelectorAll('.nav-tab')[{home:0,transfer:1,history:2,members:3}[id]].classList.add('active');
+  ({home:renderHome, transfer:renderTransfer, history:renderHistory, members:renderMembers})[id]();
 }
-
-const renders = {
-  home:     renderHome,
-  transfer: renderTransfer,
-  history:  renderHistory,
-  members:  renderMembers,
-};
+function rerenderCurrent() {
+  ({home:renderHome, transfer:renderTransfer, history:renderHistory, members:renderMembers})[currentPage]?.();
+}
+window.showPage = showPage;
 
 // ── HOME ───────────────────────────────────────────────────────────────────
 
 function renderHome() {
-  const d = load();
   const now = new Date().toISOString();
   document.getElementById('home-ts').textContent = 'Stand ' + fmtDate(now) + ', ' + fmtTime(now);
   const grid = document.getElementById('lager-grid');
   grid.innerHTML = '';
-
   for (const [lid, cfg] of Object.entries(LAGER_CFG)) {
     const card = document.createElement('div');
     card.className = 'lager-card';
     card.innerHTML = `
-      <div class="lager-header" style="border-color:${cfg.border}; background:${cfg.dim};">
+      <div class="lager-header" style="border-color:${cfg.border};background:${cfg.dim};">
         <div class="lager-pip" style="background:${cfg.color};"></div>
         <div class="lager-title" style="color:${cfg.color};">${cfg.name}</div>
         <div class="lager-stat">${cfg.keys} Schlüssel</div>
-      </div>
-      <div class="key-list" id="kl-${lid}"></div>
-    `;
+      </div><div class="key-list" id="kl-${lid}"></div>`;
     grid.appendChild(card);
-
-    const list = card.querySelector(`#kl-${lid}`);
     for (let i = 1; i <= cfg.keys; i++) {
-      const kid = keyId(lid, i);
-      const entry = d.keys[kid];
-      const row = document.createElement('div');
+      const kid   = keyId(lid, i);
+      const entry = STATE.keys[kid];
+      const row   = document.createElement('div');
       row.className = 'key-row';
       row.onclick = () => { showPage('transfer'); setTimeout(() => preselectKey(lid, i), 30); };
       row.innerHTML = `
-        <span class="key-tag" style="background:${cfg.dim}; color:${cfg.color}; border:1px solid ${cfg.border};">${kid}</span>
+        <span class="key-tag" style="background:${cfg.dim};color:${cfg.color};border:1px solid ${cfg.border};">${kid}</span>
         <div class="key-info">
           <div class="key-holder">${entry?.holder || '—'}</div>
-          <div class="key-since">${entry?.since ? 'seit ' + fmtDate(entry.since) + ' ' + fmtTime(entry.since) : 'kein Eintrag'}</div>
-        </div>
-        <div class="key-arrow">→</div>
-      `;
-      list.appendChild(row);
+          <div class="key-since">${entry?.since ? 'seit '+fmtDate(entry.since)+' '+fmtTime(entry.since) : 'kein Eintrag'}</div>
+        </div><div class="key-arrow">→</div>`;
+      card.querySelector(`#kl-${lid}`).appendChild(row);
     }
   }
 }
@@ -638,43 +708,59 @@ function renderHome() {
 let selectedNewOwner = null;
 
 function renderTransfer() {
-  selectedNewOwner = null;
+  populateMemberDropdown();
   renderMemberPicker();
   updateKeySelect();
   updateFlowDisplay();
 }
 
+function sortedMembers() {
+  return [...STATE.members].sort((a,b) => (STATE.usage[b]||0) - (STATE.usage[a]||0));
+}
+
+function populateMemberDropdown() {
+  const sel = document.getElementById('t-member-select');
+  sel.innerHTML = '<option value="">— Person —</option>';
+  sortedMembers().forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m;
+    if (m === selectedNewOwner) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+window.onMemberSelectChange = function() {
+  selectedNewOwner = document.getElementById('t-member-select').value || null;
+  renderMemberPicker(); updateFlowDisplay();
+};
+
 function renderMemberPicker() {
-  const d = load();
-  const sorted = [...d.members].sort((a,b) => (d.usage[b]||0) - (d.usage[a]||0));
   const list = document.getElementById('transfer-members');
   list.innerHTML = '';
-  sorted.forEach((m, i) => {
+  sortedMembers().forEach((m, i) => {
     const div = document.createElement('div');
     div.className = 'member-item' + (m === selectedNewOwner ? ' selected' : '');
-    div.innerHTML = `
-      <span class="member-rank">${i+1}</span>
-      <span class="member-name">${m}</span>
-      <span class="member-usage">${d.usage[m] || 0}×</span>
-    `;
-    div.onclick = () => { selectedNewOwner = m; renderMemberPicker(); updateFlowDisplay(); };
+    div.innerHTML = `<span class="member-rank">${i+1}</span><span class="member-name">${m}</span><span class="member-usage">${STATE.usage[m]||0}×</span>`;
+    div.onclick = () => {
+      selectedNewOwner = m;
+      document.getElementById('t-member-select').value = m;
+      renderMemberPicker(); updateFlowDisplay();
+    };
     list.appendChild(div);
   });
 }
 
-function onLagerChange() { updateKeySelect(); updateFlowDisplay(); }
-function onKeyChange()   { updateFlowDisplay(); }
+window.onLagerChange = function() { updateKeySelect(); updateFlowDisplay(); };
+window.onKeyChange   = function() { updateFlowDisplay(); };
 
 function updateKeySelect() {
   const lager = document.getElementById('t-lager').value;
   const sel   = document.getElementById('t-key');
   sel.innerHTML = '';
-  if (!lager) { sel.innerHTML = '<option value="">— zuerst Lager wählen —</option>'; return; }
-  const cfg = LAGER_CFG[lager];
-  for (let i = 1; i <= cfg.keys; i++) {
+  if (!lager) { sel.innerHTML = '<option value="">— Schlüssel —</option>'; return; }
+  for (let i = 1; i <= LAGER_CFG[lager].keys; i++) {
     const o = document.createElement('option');
-    o.value = i;
-    o.textContent = keyId(lager, i);
+    o.value = i; o.textContent = keyId(lager, i);
     sel.appendChild(o);
   }
 }
@@ -683,53 +769,30 @@ function updateFlowDisplay() {
   const lager  = document.getElementById('t-lager').value;
   const keyNum = document.getElementById('t-key').value;
   const el     = document.getElementById('flow-display');
-
   if (!lager || !keyNum) {
     el.innerHTML = '<span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>';
     return;
   }
-  const d    = load();
-  const kid  = keyId(lager, keyNum);
-  const current = d.keys[kid]?.holder || '(kein Eintrag)';
+  const current = STATE.keys[keyId(lager, keyNum)]?.holder || '(kein Eintrag)';
   const next    = selectedNewOwner || '?';
-
-  const cfg = LAGER_CFG[lager];
   el.innerHTML = `
-    <span class="flow-person" style="color:var(--muted); font-size:12px;">${current}</span>
+    <span class="flow-person" style="color:var(--muted);font-size:12px;">${current}</span>
     <span class="flow-arrow">→</span>
-    <span class="flow-person" style="color:${selectedNewOwner ? 'var(--text)' : 'var(--muted2)'};">${next}</span>
-  `;
+    <span class="flow-person" style="color:${selectedNewOwner?'var(--text)':'var(--muted2)'};">${next}</span>`;
 }
 
-function doTransfer() {
+window.doTransfer = async function() {
   const lager  = document.getElementById('t-lager').value;
   const keyNum = document.getElementById('t-key').value;
-  if (!lager || !keyNum)      { toast('Lager und Schlüssel wählen', true); return; }
-  if (!selectedNewOwner)       { toast('Neuen Besitzer wählen', true); return; }
-
-  const d   = load();
-  const kid = keyId(lager, keyNum);
-  const prev = d.keys[kid]?.holder || null;
-  const cfg  = LAGER_CFG[lager];
-
+  if (!lager || !keyNum)  { toast('Lager und Schlüssel wählen', true); return; }
+  if (!selectedNewOwner)  { toast('Neuen Besitzer wählen', true); return; }
+  const kid  = keyId(lager, keyNum);
+  const prev = STATE.keys[kid]?.holder || null;
   if (prev === selectedNewOwner) { toast('Person hat diesen Schlüssel bereits', true); return; }
-
-  d.keys[kid] = { lager, holder: selectedNewOwner, since: new Date().toISOString() };
-  d.usage[selectedNewOwner] = (d.usage[selectedNewOwner] || 0) + 1;
-
-  d.history.unshift({
-    ts:      new Date().toISOString(),
-    lager:   cfg.name,
-    lagerId: lager,
-    key:     kid,
-    from:    prev,
-    to:      selectedNewOwner,
-  });
-
-  save(d);
-  toast(`${kid}: ${prev || '—'} → ${selectedNewOwner}`);
-  renderTransfer();
-}
+  await fbTransfer(kid, lager, selectedNewOwner, prev);
+  toast(`${kid}: ${prev||'—'} → ${selectedNewOwner}`);
+  selectedNewOwner = null;
+};
 
 function preselectKey(lid, num) {
   document.getElementById('t-lager').value = lid;
@@ -742,21 +805,18 @@ function preselectKey(lid, num) {
 
 let histSortAsc = false;
 
-function toggleSort() {
+window.toggleSort = function() {
   histSortAsc = !histSortAsc;
   document.getElementById('sort-label').textContent = histSortAsc ? '↑ Älteste zuerst' : '↓ Neueste zuerst';
   renderHistory();
-}
+};
 
 function renderHistory() {
-  const d = load();
-
-  // populate person filter
   const fPerson = document.getElementById('f-person');
   const prevPerson = fPerson.value;
   fPerson.innerHTML = '<option value="">Alle Personen</option>';
   const allPersons = new Set();
-  d.history.forEach(h => { if(h.from) allPersons.add(h.from); if(h.to) allPersons.add(h.to); });
+  STATE.history.forEach(h => { if(h.from) allPersons.add(h.from); if(h.to) allPersons.add(h.to); });
   [...allPersons].sort().forEach(p => {
     const o = document.createElement('option');
     o.value = p; o.textContent = p;
@@ -764,15 +824,12 @@ function renderHistory() {
     fPerson.appendChild(o);
   });
 
-  // key filter based on selected lager
-  const fLager = document.getElementById('f-lager').value;
-  const fKey   = document.getElementById('f-key');
+  const fLager  = document.getElementById('f-lager').value;
+  const fKey    = document.getElementById('f-key');
   const prevKey = fKey.value;
   fKey.innerHTML = '<option value="">Alle Schlüssel</option>';
-  const lagersToShow = fLager ? [fLager] : Object.keys(LAGER_CFG);
-  lagersToShow.forEach(lid => {
-    const cfg = LAGER_CFG[lid];
-    for (let i = 1; i <= cfg.keys; i++) {
+  (fLager ? [fLager] : Object.keys(LAGER_CFG)).forEach(lid => {
+    for (let i = 1; i <= LAGER_CFG[lid].keys; i++) {
       const kid = keyId(lid, i);
       const o = document.createElement('option');
       o.value = kid; o.textContent = kid;
@@ -783,8 +840,7 @@ function renderHistory() {
 
   const fKeyVal    = fKey.value;
   const fPersonVal = document.getElementById('f-person').value;
-
-  let entries = [...d.history];
+  let entries = [...STATE.history];
   if (fLager)     entries = entries.filter(h => h.lagerId === fLager);
   if (fKeyVal)    entries = entries.filter(h => h.key === fKeyVal);
   if (fPersonVal) entries = entries.filter(h => h.from === fPersonVal || h.to === fPersonVal);
@@ -794,100 +850,87 @@ function renderHistory() {
   const empty = document.getElementById('history-empty');
   body.innerHTML = '';
   document.getElementById('history-sub').textContent =
-    entries.length + ' Einträge' + (fLager || fKeyVal || fPersonVal ? ' (gefiltert)' : ' gesamt');
+    entries.length + ' Einträge' + (fLager||fKeyVal||fPersonVal ? ' (gefiltert)' : ' gesamt');
 
   if (!entries.length) { empty.style.display = ''; return; }
   empty.style.display = 'none';
 
-  entries.forEach((h, idx) => {
+  entries.forEach(h => {
     const cfg = LAGER_CFG[h.lagerId] || {};
-    // find the original index in d.history for deletion
-    const origIdx = d.history.indexOf(h);
-    const tr = document.createElement('tr');
+    const tr  = document.createElement('tr');
     tr.innerHTML = `
-      <td style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:'Cascadia Code',monospace;">${fmtDate(h.ts)}</td>
-      <td style="color:var(--muted);font-size:12px;white-space:nowrap;font-family:'Cascadia Code',monospace;">${fmtTime(h.ts)}</td>
+      <td style="color:var(--muted);font-size:12px;font-family:'Cascadia Code',monospace;line-height:1.4;">
+        ${fmtDate(h.ts)}<br><span style="color:var(--muted2);font-size:11px;">${fmtTime(h.ts)}</span>
+      </td>
       <td style="font-family:'Cascadia Code',monospace;font-weight:600;color:${cfg.color||'var(--text)'};">${h.key}</td>
-      <td><span class="lager-chip" style="background:${cfg.dim||'#222'};color:${cfg.color||'#aaa'};">${h.lager}</span></td>
-      <td style="color:var(--muted);">${h.from || '—'}</td>
+      <td style="color:var(--muted);">${h.from||'—'}</td>
       <td style="font-weight:600;">${h.to}</td>
-      <td><button onclick="deleteHistoryEntry(${origIdx})" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>
-    `;
+      <td><button onclick="window.deleteHistoryEntry('${h._fbKey}')" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>`;
     body.appendChild(tr);
   });
 }
 
+window.deleteHistoryEntry = async function(fbKey) {
+  await remove(ref(db, `history/${fbKey}`));
+};
+
 // ── MEMBERS ────────────────────────────────────────────────────────────────
 
 function renderMembers() {
-  const d      = load();
-  const sorted = [...d.members].sort((a,b) => (d.usage[b]||0) - (d.usage[a]||0));
-  const body   = document.getElementById('members-body');
+  const body = document.getElementById('members-body');
   body.innerHTML = '';
-
-  sorted.forEach((m, i) => {
-    const heldLabels = Object.entries(d.keys)
+  sortedMembers().forEach((m, i) => {
+    const heldLabels = Object.entries(STATE.keys)
       .filter(([,v]) => v?.holder === m)
       .map(([kid]) => {
         const lid = kid.charAt(0).toUpperCase();
         const cfg = LAGER_CFG[lid] || {};
         return `<span style="font-family:'Cascadia Code',monospace;font-size:11px;background:${cfg.dim||'var(--surface2)'};color:${cfg.color||'var(--text)'};padding:2px 6px;border-radius:3px;">${kid}</span>`;
       }).join(' ');
-
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="color:var(--muted2);font-size:11px;">#${i+1}</td>
       <td style="font-weight:600;">${m}</td>
-      <td style="font-family:'Cascadia Code',monospace; color:var(--text);">${d.usage[m] || 0}</td>
-      <td>${heldLabels || '<span style="color:var(--muted2)">—</span>'}</td>
-      <td><button onclick="deleteMember('${m.replace(/'/g, "\\'")}')" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>
-    `;
+      <td style="font-family:'Cascadia Code',monospace;">${STATE.usage[m]||0}</td>
+      <td>${heldLabels||'<span style="color:var(--muted2)">—</span>'}</td>
+      <td><button onclick="window.deleteMember('${m.replace(/'/g,"\\'")}')" style="font-family:'Cascadia Code',monospace;font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;" onmouseover="this.style.color='#b85c4a';this.style.borderColor='#b85c4a';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)';">✕</button></td>`;
     body.appendChild(tr);
   });
 }
 
-function deleteHistoryEntry(idx) {
-  const d = load();
-  d.history.splice(idx, 1);
-  save(d);
-  renderHistory();
-}
-
-function deleteMember(name) {
-  const d = load();
-  const held = Object.values(d.keys).filter(k => k?.holder === name);
-  if (held.length) { toast(`${name} hält noch ${held.length} Schlüssel`, true); return; }
-  d.members = d.members.filter(m => m !== name);
-  delete d.usage[name];
-  save(d);
+window.deleteMember = async function(name) {
+  if (Object.values(STATE.keys).some(k => k?.holder === name)) {
+    toast(`${name} hält noch Schlüssel`, true); return;
+  }
+  await remove(ref(db, `members/${memberKey(name)}`));
+  await remove(ref(db, `usage/${memberKey(name)}`));
   toast(`${name} entfernt`);
-  renderMembers();
-}
+};
 
-function addMember() {
+window.addMember = async function() {
   const inp  = document.getElementById('new-member');
   const name = inp.value.trim();
   if (!name) return;
-  const d = load();
-  if (d.members.includes(name)) { toast('Mitglied bereits vorhanden', true); return; }
-  d.members.push(name);
-  save(d);
+  if (STATE.members.includes(name)) { toast('Mitglied bereits vorhanden', true); return; }
+  await set(ref(db, `members/${memberKey(name)}`), true);
   inp.value = '';
   toast(`${name} hinzugefügt`);
-  renderMembers();
-}
+};
 
 // ── UTILS ──────────────────────────────────────────────────────────────────
 
 function fmtDate(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = String(d.getFullYear()).slice(2);
+  return `${dd}.${mm}.${yy}`;
 }
 function fmtTime(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
 }
-
 function toast(msg, isErr = false) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -896,19 +939,21 @@ function toast(msg, isErr = false) {
   setTimeout(() => el.classList.remove('show'), 3200);
 }
 
-// ── NFC URL PARAMS ─────────────────────────────────────────────────────────
+// ── INIT ───────────────────────────────────────────────────────────────────
 
-(function() {
-  const p = new URLSearchParams(location.search);
+function init() {
+  const p     = new URLSearchParams(location.search);
   const lager = (p.get('lager') || '').toUpperCase();
   const key   = p.get('schluessel');
   if (lager && key && LAGER_CFG[lager]) {
     showPage('transfer');
     setTimeout(() => preselectKey(lager, key), 60);
   } else {
-    renderHome();
+    showPage('home');
   }
-})();
+}
+
+fbInit().then(fbListen);
 </script>
 </body>
 </html>
