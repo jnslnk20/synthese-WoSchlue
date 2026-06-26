@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>synthese · WoSchlü</title>
+<title>synthēse · WoSchlü</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Cascadia+Code:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
@@ -64,7 +64,7 @@
   .wordmark {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-weight: 800;
-    font-size: 17px;
+    font-size: 19px;
     color: var(--text);
     letter-spacing: -0.5px;
     margin-right: 5px;
@@ -73,7 +73,7 @@
   .wordmark-sub {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-weight: 400;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--muted);
     letter-spacing: -0.3px;
     margin-right: 0;
@@ -88,16 +88,17 @@
     justify-content: flex-end;
   }
   @media (max-width: 520px) {
-    nav { padding: 0 14px; }
-    .nav-brand { height: 48px; }
+    nav { padding: 0 10px; }
+    .nav-brand { height: 46px; gap: 4px; }
     .nav-tabs {
       flex: none;
       width: 100%;
       justify-content: flex-start;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
       border-top: 1px solid var(--border);
-      padding-top: 6px;
+      padding-top: 5px;
       overflow-x: auto;
+      gap: 1px;
     }
     .wordmark-sub { margin-right: 0; }
   }
@@ -106,13 +107,14 @@
     font-size: 12px;
     font-weight: 400;
     color: var(--muted);
-    padding: 7px 14px;
+    padding: 6px 10px;
     border-radius: 5px;
     cursor: pointer;
     border: none;
     background: none;
     transition: color 0.15s, background 0.15s;
     letter-spacing: 0.2px;
+    white-space: nowrap;
   }
   .nav-tab:hover { color: var(--text); background: var(--surface2); }
   .nav-tab.active { color: var(--text); background: var(--surface2); }
@@ -422,13 +424,49 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* key icon */
+  .key-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    filter: invert(1);
+    opacity: 0.9;
+  }
+
+  /* new owner highlight card */
+  .owner-card {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 14px;
+  }
+  .owner-card label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .owner-card select {
+    border-color: var(--text);
+    background: var(--bg);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .owner-card select:focus { border-color: var(--text); box-shadow: 0 0 0 2px rgba(232,230,225,0.12); }
 </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand">
-    <div class="wordmark">synthese</div>
+    <img src="key.png" class="key-icon" alt="">
+    <div class="wordmark">synthēse</div>
     <div class="wordmark-sub">WoSchlü</div>
   </div>
   <div class="nav-tabs">
@@ -455,8 +493,8 @@
 
     <div class="card" style="margin-bottom:20px;">
       <div class="card-inner">
-        <div class="card-label">Schlüssel & Besitzer</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;" class="transfer-3col">
+        <div class="card-label">Schlüssel wählen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="transfer-3col">
           <div class="field" style="margin:0;">
             <label>Lager</label>
             <select id="t-lager" onchange="onLagerChange()">
@@ -471,15 +509,15 @@
               <option value="">— Schlüssel —</option>
             </select>
           </div>
-          <div class="field" style="margin:0;">
-            <label>Neuer Besitzer</label>
-            <select id="t-member-select" onchange="onMemberSelectChange()">
-              <option value="">— Person —</option>
-            </select>
-          </div>
         </div>
         <div class="flow-display" id="flow-display" style="margin-top:16px;">
-          <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel und Person wählen →</span>
+          <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>
+        </div>
+        <div class="owner-card">
+          <label>✦ Neuer Besitzer</label>
+          <select id="t-member-select" onchange="onMemberSelectChange()" style="width:100%;">
+            <option value="">— Person auswählen —</option>
+          </select>
         </div>
         <button class="btn btn-primary btn-full" onclick="doTransfer()">Übergabe eintragen</button>
       </div>
@@ -499,6 +537,7 @@
           <div class="nfc-hint-step"><span class="nfc-hint-num">1.</span><span>Lager und Schlüssel wählen — der aktuelle Besitzer erscheint links im Pfeil.</span></div>
           <div class="nfc-hint-step"><span class="nfc-hint-num">2.</span><span>Neuen Besitzer per Dropdown oder Rangliste wählen — er erscheint rechts im Pfeil.</span></div>
           <div class="nfc-hint-step"><span class="nfc-hint-num">3.</span><span>„Übergabe eintragen" drücken. Der Eintrag wird sofort in der Historie gespeichert.</span></div>
+          <div class="nfc-hint-step" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><span class="nfc-hint-num">💡</span><span>NFC-Tags mit dieser URL-Struktur programmieren, z.B. für L-Lager Schlüssel 2:<br><span style="font-family:'Cascadia Code',monospace;font-size:10px;color:#C87941;background:rgba(200,121,65,0.12);padding:3px 7px;border-radius:3px;display:inline-block;margin-top:5px;word-break:break-all;">https://jnslnk20.github.io/synthese-WoSchlue/?lager=L&amp;schluessel=2</span></span></div>
         </div>
       </div>
     </div>
