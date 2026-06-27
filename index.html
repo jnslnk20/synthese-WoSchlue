@@ -434,13 +434,17 @@
     opacity: 0.9;
   }
 
-  /* new owner highlight card */
   .owner-card {
     background: var(--surface2);
     border: 1px solid var(--border2);
     border-radius: 8px;
     padding: 12px 14px;
     margin-top: 14px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .owner-card.empty {
+    border-color: rgba(184,92,74,0.6);
+    background: rgba(184,92,74,0.07);
   }
   .owner-card label {
     display: block;
@@ -451,13 +455,15 @@
     letter-spacing: 1px;
     margin-bottom: 8px;
   }
+  .owner-card.empty label { color: #b85c4a; }
   .owner-card select {
-    border-color: var(--text);
+    border-color: var(--border2);
     background: var(--bg);
     font-size: 14px;
     font-weight: 600;
     color: var(--text);
   }
+  .owner-card.empty select { border-color: rgba(184,92,74,0.5); }
   .owner-card select:focus { border-color: var(--text); box-shadow: 0 0 0 2px rgba(232,230,225,0.12); }
 </style>
 </head>
@@ -465,7 +471,7 @@
 
 <nav>
   <div class="nav-brand">
-    <img src="key.png" class="key-icon" alt="">
+    <img src="$RKT9YX6.png" class="key-icon" alt="">
     <div class="wordmark">synthēse</div>
     <div class="wordmark-sub">WoSchlü</div>
   </div>
@@ -510,14 +516,14 @@
             </select>
           </div>
         </div>
-        <div class="flow-display" id="flow-display" style="margin-top:16px;">
-          <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>
-        </div>
-        <div class="owner-card">
+        <div class="owner-card" id="owner-card">
           <label>✦ Neuer Besitzer</label>
           <select id="t-member-select" onchange="onMemberSelectChange()" style="width:100%;">
             <option value="">— Person auswählen —</option>
           </select>
+        </div>
+        <div class="flow-display" id="flow-display" style="margin-top:14px;">
+          <span class="flow-placeholder" style="width:100%;text-align:center;">Schlüssel wählen →</span>
         </div>
         <button class="btn btn-primary btn-full" onclick="doTransfer()">Übergabe eintragen</button>
       </div>
@@ -589,7 +595,7 @@
           <tr>
             <th>#</th>
             <th>Name</th>
-            <th>Übernahmen</th>
+            <th>Über-<br>nahmen</th>
             <th>Hält gerade</th>
             <th></th>
           </tr>
@@ -746,11 +752,18 @@ function renderHome() {
 
 let selectedNewOwner = null;
 
+function updateOwnerCardState() {
+  const card = document.getElementById('owner-card');
+  if (!card) return;
+  card.classList.toggle('empty', !selectedNewOwner);
+}
+
 function renderTransfer() {
   populateMemberDropdown();
   renderMemberPicker();
   updateKeySelect();
   updateFlowDisplay();
+  updateOwnerCardState();
 }
 
 function sortedMembers() {
@@ -770,7 +783,7 @@ function populateMemberDropdown() {
 
 window.onMemberSelectChange = function() {
   selectedNewOwner = document.getElementById('t-member-select').value || null;
-  renderMemberPicker(); updateFlowDisplay();
+  renderMemberPicker(); updateFlowDisplay(); updateOwnerCardState();
 };
 
 function renderMemberPicker() {
@@ -783,7 +796,7 @@ function renderMemberPicker() {
     div.onclick = () => {
       selectedNewOwner = m;
       document.getElementById('t-member-select').value = m;
-      renderMemberPicker(); updateFlowDisplay();
+      renderMemberPicker(); updateFlowDisplay(); updateOwnerCardState();
     };
     list.appendChild(div);
   });
