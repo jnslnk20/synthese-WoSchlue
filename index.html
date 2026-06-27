@@ -618,8 +618,21 @@
 </main>
 
 <div class="toast" id="toast"></div>
+
+<!-- Confirm Dialog -->
+<div id="confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px);">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:28px 28px 22px;max-width:340px;width:90%;box-shadow:0 24px 48px rgba(0,0,0,0.5);">
+    <div id="confirm-title" style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;letter-spacing:-0.3px;margin-bottom:8px;color:var(--text);"></div>
+    <div id="confirm-body" style="font-family:'Cascadia Code',monospace;font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:22px;"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="confirmCancel()" style="font-family:'Cascadia Code',monospace;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--muted);cursor:pointer;">Abbrechen</button>
+      <button id="confirm-ok" onclick="confirmOk()" style="font-family:'Cascadia Code',monospace;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;border:none;background:#b85c4a;color:#fff;cursor:pointer;">Löschen</button>
+    </div>
+  </div>
+</div>
+
 <div id="loader" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;">
-  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--text);">synthese <span style="font-weight:400;color:var(--muted);">WoSchlü</span></div>
+  <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px;color:var(--text);">synthēse <span style="font-weight:400;color:var(--muted);">WoSchlü</span></div>
   <div style="font-family:'Cascadia Code',monospace;font-size:12px;color:var(--muted);">Verbinde mit Datenbank…</div>
 </div>
 
@@ -922,11 +935,49 @@ function renderHistory() {
   });
 }
 
-window.deleteHistoryEntry = async function(fbKey) {
-  await remove(ref(db, `history/${fbKey}`));
+// ── CONFIRM DIALOG ─────────────────────────────────────────────────────────
+
+let _confirmCallback = null;
+
+function showConfirm(title, body, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').textContent  = body;
+  _confirmCallback = onOk;
+  const overlay = document.getElementById('confirm-overlay');
+  overlay.style.display = 'flex';
+}
+
+window.confirmOk = function() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+  if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
+};
+window.confirmCancel = function() {
+  document.getElementById('confirm-overlay').style.display = 'none';
+  _confirmCallback = null;
 };
 
-// ── MEMBERS ────────────────────────────────────────────────────────────────
+window.deleteHistoryEntry = function(fbKey) {
+  showConfirm(
+    'Eintrag löschen',
+    'Möchtest du diesen Verlaufseintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+    async () => { await remove(ref(db, `history/${fbKey}`)); }
+  );
+};
+
+window.deleteMember = function(name) {
+  if (Object.values(STATE.keys).some(k => k?.holder === name)) {
+    toast(`${name} hält noch Schlüssel`, true); return;
+  }
+  showConfirm(
+    'Mitglied entfernen',
+    `Möchtest du „${name}" wirklich aus der Mitgliederliste entfernen?`,
+    async () => {
+      await remove(ref(db, `members/${memberKey(name)}`));
+      await remove(ref(db, `usage/${memberKey(name)}`));
+      toast(`${name} entfernt`);
+    }
+  );
+};
 
 function renderMembers() {
   const body = document.getElementById('members-body');
@@ -949,15 +1000,6 @@ function renderMembers() {
     body.appendChild(tr);
   });
 }
-
-window.deleteMember = async function(name) {
-  if (Object.values(STATE.keys).some(k => k?.holder === name)) {
-    toast(`${name} hält noch Schlüssel`, true); return;
-  }
-  await remove(ref(db, `members/${memberKey(name)}`));
-  await remove(ref(db, `usage/${memberKey(name)}`));
-  toast(`${name} entfernt`);
-};
 
 window.addMember = async function() {
   const inp  = document.getElementById('new-member');
