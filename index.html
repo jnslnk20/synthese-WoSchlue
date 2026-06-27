@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>synthēse · WoSchlü</title>
+<link rel="apple-touch-icon" href="$RKT9YX6.png">
+<link rel="icon" type="image/png" href="$RKT9YX6.png">
+<style>
+  /* invert icon for home screen — handled via CSS on the img tag in nav */
+</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WoSchlü">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Cascadia+Code:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
@@ -143,7 +151,17 @@
 
   /* ── LAGER GRID ── */
   .lager-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (min-width: 900px) { .lager-grid { grid-template-columns: 1fr 1fr 1fr; } }
   @media (max-width: 620px) { .lager-grid { grid-template-columns: 1fr; } }
+
+  .key-vehicle {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2px;
+    margin-bottom: 1px;
+  }
 
   .lager-card {
     border-radius: 10px;
@@ -507,6 +525,7 @@
               <option value="">— Lager —</option>
               <option value="L">L-Lager</option>
               <option value="B">B-Lager</option>
+              <option value="F">Fahrzeuge</option>
             </select>
           </div>
           <div class="field" style="margin:0;">
@@ -559,6 +578,7 @@
         <option value="">Alle Lager</option>
         <option value="L">L-Lager</option>
         <option value="B">B-Lager</option>
+        <option value="F">Fahrzeuge</option>
       </select>
       <select id="f-key" onchange="renderHistory()" style="width:auto;font-size:12px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cascadia Code',monospace;appearance:none;outline:none;"></select>
       <select id="f-person" onchange="renderHistory()" style="width:auto;font-size:12px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Cascadia Code',monospace;appearance:none;outline:none;"></select>
@@ -655,8 +675,15 @@ const db    = getDatabase(fbApp);
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 
 const LAGER_CFG = {
-  L: { name: 'L-Lager', color: '#C87941', dim: 'rgba(200,121,65,0.12)', border: 'rgba(200,121,65,0.28)', keys: 5 },
-  B: { name: 'B-Lager', color: '#5B80C8', dim: 'rgba(91,128,200,0.12)', border: 'rgba(91,128,200,0.3)',  keys: 5 },
+  L: { name: 'L-Lager',    color: '#C87941', dim: 'rgba(200,121,65,0.12)', border: 'rgba(200,121,65,0.28)', keys: 5 },
+  B: { name: 'B-Lager',    color: '#5B80C8', dim: 'rgba(91,128,200,0.12)', border: 'rgba(91,128,200,0.3)',  keys: 5 },
+  F: { name: 'Fahrzeuge',  color: '#4a9e6b', dim: 'rgba(74,158,107,0.12)', border: 'rgba(74,158,107,0.3)', keys: 3 },
+};
+
+const FAHRZEUG_LABELS = {
+  F1: 'Twingo',
+  F2: 'Twingo',
+  F3: 'Mario',
 };
 
 function keyId(lager, num) { return lager.toUpperCase() + num; }
@@ -750,9 +777,11 @@ function renderHome() {
       const row   = document.createElement('div');
       row.className = 'key-row';
       row.onclick = () => { showPage('transfer'); setTimeout(() => preselectKey(lid, i), 30); };
+      const vehicleLabel = FAHRZEUG_LABELS[kid] ? `<div class="key-vehicle">${FAHRZEUG_LABELS[kid]}</div>` : '';
       row.innerHTML = `
         <span class="key-tag" style="background:${cfg.dim};color:${cfg.color};border:1px solid ${cfg.border};">${kid}</span>
         <div class="key-info">
+          ${vehicleLabel}
           <div class="key-holder">${entry?.holder || '—'}</div>
           <div class="key-since">${entry?.since ? 'seit '+fmtDate(entry.since)+' '+fmtTime(entry.since) : 'kein Eintrag'}</div>
         </div><div class="key-arrow">→</div>`;
@@ -824,8 +853,10 @@ function updateKeySelect() {
   sel.innerHTML = '';
   if (!lager) { sel.innerHTML = '<option value="">— Schlüssel —</option>'; return; }
   for (let i = 1; i <= LAGER_CFG[lager].keys; i++) {
+    const kid = keyId(lager, i);
     const o = document.createElement('option');
-    o.value = i; o.textContent = keyId(lager, i);
+    o.value = i;
+    o.textContent = FAHRZEUG_LABELS[kid] ? `${kid} — ${FAHRZEUG_LABELS[kid]}` : kid;
     sel.appendChild(o);
   }
 }
